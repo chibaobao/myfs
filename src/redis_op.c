@@ -4,8 +4,6 @@
  */
 
 #include "redis_op.h"
-
-
 /* -------------------------------------------*/
 /**
  * @brief  选择redis一个数据库
@@ -1058,4 +1056,47 @@ END:
 
 	freeReplyObject(reply);
     return retn;
+}
+/* -------------------------------------------*/
+/**
+ * @brief  get 插入的stirng 命令
+ *
+ * @param conn 连接句柄
+ * @param key  
+ * @param value string 类型的value
+ *
+ * @returns   
+ *          0 succ, failed return value类型（redisReply结构体的type值）
+ */
+/* -------------------------------------------*/
+int rop_get_string(redisContext *conn, char *key, char **value)
+{
+    int retn = 0;
+    redisReply *reply = NULL;
+    reply = redisCommand(conn, "get %s", key);
+    if (reply->type != REDIS_REPLY_STRING ) {
+        retn = reply->type;
+        goto END;
+    }
+    *value = malloc(strlen(reply->str));
+    strcpy(*value,reply->str);
+    //printf("%s\n", reply->str);
+
+END:
+
+    freeReplyObject(reply);
+    return retn;
+}
+/* -------------------------------------------*/
+/**
+ * 释放rop_get_string时mallo的内存
+ *
+ * @param value string 类型的value
+ */
+/* -------------------------------------------*/
+void rop_get_string_free(char *value)
+{
+	if(value !=NULL){
+		free(value);
+	}
 }

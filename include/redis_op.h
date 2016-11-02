@@ -392,5 +392,27 @@ int rop_redis_command(redisContext *conn, char *cmd);
 /* -------------------------------------------*/
 void rop_test_reply_type(redisReply *reply);
 
+/* -------------------------------------------*/
+/**
+ * @brief  get 插入的stirng 命令
+ *
+ * @param conn 连接句柄
+ * @param key  
+ * @param value string 类型的value
+ *
+ * @returns   
+ *          0 succ, failed return value类型（redisReply结构体的type值）
+ */
+/* -------------------------------------------*/
+int rop_get_string(redisContext *conn, char *key, char **value);
 
+/* -------------------------------------------*/
+/**
+ * 释放rop_get_string时mallo的内存
+ *
+ * @param value string 类型的value
+ */
+/* -------------------------------------------*/
+ void rop_get_string_free(char *value);
+ 
 #endif
