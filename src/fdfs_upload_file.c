@@ -47,6 +47,7 @@ int fdfs_upload_file(char *file_name,char *id)
 	}
 	return 0;
 }
+#if 0
 int main(int argc,char *argv[])
 {
 	char id[1024];
@@ -54,3 +55,4 @@ int main(int argc,char *argv[])
 	printf("%s",id);
 	return 0;
 }
+#endif
