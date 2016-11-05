@@ -49,7 +49,6 @@ int main(int argc, char *argv[])
         printf("%d\n",ret );
     }
     rop_get_string_free(value);
-    LOG(REIDS_TEST_MODULE, REIDS_TEST_PROC, "set %s %s succ", "gailun", "lol");
 
     rop_disconnect(redis_conn);
 
