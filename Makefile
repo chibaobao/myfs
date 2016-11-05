@@ -34,12 +34,12 @@ $(obj_test):%.o:%.c
 $(fdfs_upload_file):./test/fdfs_upload_file.o  $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
-#fdfs_client_test程序
+#redis_op_test程序
 $(redis_op_test):./test/redis_op_test.o   ./src/redis_op.o $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
-#fdfs_client_test程序
-$(myecho):./test/myecho.o   ./src/util_cgi.o  $(LOG)
+#myecho程序
+$(myecho):./test/myecho.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_upload_file.o
 	$(CC) $^ -o $@ $(LIBS)
 
 

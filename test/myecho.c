@@ -32,20 +32,35 @@ extern char **environ;
 #include "fcgi_stdio.h"
 #include "make_log.h"
 #include "util_cgi.h"
-int get_file(char *out_data,int len)
+#include "fdfs_upload_file.h"
+#define FDFS_LOG_MODULE "test"
+#define FDFS_LOG_PROC "fdfs_test"
+
+//更加数据流得到文件名和文件内容，并把文件内容存到当前路径下相应文件名
+int get_file(char *out_data,int data_len,char *file_name)
 {
 	char *ch = out_data;
 	char *tmp = "\r\n";
 	char *head =NULL;
 	int head_len;
 	char *file[10];
-	FILE *fd;
-	fd = fopen("aa.png","wb");
+	FILE *fd=NULL;
+	char *file_name_begin;
+	char *file_name_end;
+
+	//获取文件名	
+	file_name_begin =strstr(out_data,"filename=");
+	file_name_begin = file_name_begin+strlen("filename=")+1;
+	file_name_end = strchr(file_name_begin,'"');
+	strncpy(file_name, file_name_begin, file_name_end - file_name_begin);
+	file_name[file_name_end - file_name_begin] = 0;
+	LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "file name:[%s]",file_name);
+
+	fd = fopen(file_name,"wb");
 
 
 	file[0]=out_data;
-	ch = memstr(out_data, len, tmp);
-	LOG("echo","mylog", "dispot line[%s]",ch+2);
+	ch = memstr(out_data, data_len, tmp);
 	file[1] = ch;//头标志行结束
 
 	//存储头(分割线)数据
@@ -57,28 +72,23 @@ int get_file(char *out_data,int len)
 
 	ch = ch+2;
 	file[2] = ch;//Content-Disposition行开始
-	ch = memstr(ch, len-(ch-out_data), tmp);
-	LOG("echo","mylog", "type [%s]",ch+2);
+	ch = memstr(ch, data_len-(ch-out_data), tmp);
 	file[3] = ch;//Content-Disposition行结束
 
 	ch = ch+2;
 	file[4] = ch;//Content-Type开始
-	ch = memstr(ch, len-(ch-out_data), tmp);
-	LOG("echo","mylog", "data [%s]",ch+4);
+	ch = memstr(ch, data_len-(ch-out_data), tmp);
 	file[5] = ch;//Content-Type结束
 
 	ch = ch+4;
 	file[6] = ch;//数据开始
-	ch = memstr(ch, len-(ch-out_data), head);
-	LOG("echo","mylog", "second head line[%s]",ch);
+	ch = memstr(ch, data_len-(ch-out_data), head);
 	file[7] = ch-2;//数据结束因为data尾有"\r\n"所有减2
 
 	fwrite(file[6],1,file[7]-file[6],fd);
 	fclose(fd);
 	free(head);
 
-//	ch = memstr(tmp, 2, ch);
-//	LOG("echo","mylog", "first line[%s]",ch+2);
 
 	return 0;
 }
@@ -133,21 +143,35 @@ int main ()
                     printf("Error: Not enough bytes received on standard input<p>\n");
                     break;
 				}
-				putchar(ch);
+				//putchar(ch);
 				out_data[i] = ch;
             }
-			get_file(out_data,len);
+
+			//取得文件内容，和文件名，并把数据写入对应文件名
+			char file_name[1024]={0};
+			get_file(out_data,len,file_name);
 			if(out_data !=NULL)
 			{
 				free(out_data);
 			}
+
+
+			//将文件数据上传到fdfs中,并获取id
+			char id[128] = {0};
+			fdfs_upload_file(file_name,id);
+
+			//去除id中末尾的换行
+			id[strlen(id)-1]=0;
+			LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "id:[%s]",id);
+
             printf("\n</pre><p>\n");
         }
 
         PrintEnv("Request environment", environ);
         PrintEnv("Initial environment", initialEnv);
 		char *str = getenv("QUERY_STRING");
-		LOG("echo","mylog", "myecho[%s]",str);
+		LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "query:[%s]",str);
+
     } /* while */
 
     return 0;
