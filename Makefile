@@ -2,8 +2,8 @@
 CC=gcc
 CPPFLAGS= -I./include  
 CFLAGS=-Wall 
-LIBS= -lhiredis
-
+LIBS= -lhiredis -lpthread -lfcgi
+LOG = ./src/make_log.o
 #找到src和test目录下所有的.c文件
 src = $(wildcard ./src/*.c)
 test = $(wildcard ./test/*.c)
@@ -16,9 +16,9 @@ obj_test = $(patsubst %.c, %.o, $(test))
 #生成test目标
 fdfs_upload_file = ./test/fdfs_upload_file
 redis_op_test = ./test/redis_op_test
+myecho = ./test/myecho
 
-target=$(fdfs_upload_file)	$(redis_op_test)
-
+target=$(fdfs_upload_file)	$(redis_op_test) $(myecho)
 
 ALL:$(target)
 
@@ -31,13 +31,16 @@ $(obj_test):%.o:%.c
 
 
 #fdfs_client_test程序
-$(fdfs_upload_file):./test/fdfs_upload_file.o  ./src/make_log.o
+$(fdfs_upload_file):./test/fdfs_upload_file.o  $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
 #fdfs_client_test程序
-$(redis_op_test):./test/redis_op_test.o  ./src/make_log.o ./src/redis_op.o
+$(redis_op_test):./test/redis_op_test.o   ./src/redis_op.o $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
+#fdfs_client_test程序
+$(myecho):./test/myecho.o   ./src/util_cgi.o  $(LOG)
+	$(CC) $^ -o $@ $(LIBS)
 
 
 #clean指令
