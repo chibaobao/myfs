@@ -1107,8 +1107,6 @@ int rop_set_hash(redisContext *conn, char *key, char *field, char *value)
         retn = -1;
         goto END;
     }
-	retn =(int) reply->integer;
-	
 
 END:
 	freeReplyObject(reply);

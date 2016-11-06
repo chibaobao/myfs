@@ -414,7 +414,7 @@ int rop_get_string(redisContext *conn, char *key, char *value);
  * @param key  fileds value是相应参数
  *
  * @returns   
- *          1/0 succ, -1 fail
+ *          0 succ, -1 fail
  */
 /* -------------------------------------------*/
 int rop_set_hash(redisContext *conn, char *key, char *field, char *value);
@@ -426,7 +426,7 @@ int rop_set_hash(redisContext *conn, char *key, char *field, char *value);
  * @param key  fileds value（用户分配空间）是相应参数
  *
  * @returns   
- *          1/0 succ, -1 fail
+ *          1 succ, -1 fail
  */
 /* -------------------------------------------*/
 int rop_get_hash(redisContext *conn, char *key, char *field, char *value);
