@@ -1050,6 +1050,7 @@ int rop_set_string(redisContext *conn, char *key, char *value)
         goto END;
     }
 
+    //printf("%d\n", reply->type);
     //printf("%s\n", reply->str);
 
 END:
@@ -1069,7 +1070,7 @@ END:
  *          0 succ, failed return value类型（redisReply结构体的type值）
  */
 /* -------------------------------------------*/
-int rop_get_string(redisContext *conn, char *key, char **value)
+int rop_get_string(redisContext *conn, char *key, char *value)
 {
     int retn = 0;
     redisReply *reply = NULL;
@@ -1078,25 +1079,63 @@ int rop_get_string(redisContext *conn, char *key, char **value)
         retn = reply->type;
         goto END;
     }
-    *value = malloc(strlen(reply->str));
-    strcpy(*value,reply->str);
+    strcpy(value,reply->str);
     //printf("%s\n", reply->str);
-
 END:
-
     freeReplyObject(reply);
     return retn;
 }
 /* -------------------------------------------*/
 /**
- * 释放rop_get_string时mallo的内存
+ * @brief  set 插入的hash 命a令
  *
- * @param value string 类型的value
+ * @param conn 连接句柄
+ * @param key  fileds value是相应参数
+ *
+ * @returns   
+ *          1/0 succ, -1 fail
  */
 /* -------------------------------------------*/
-void rop_get_string_free(char *value)
+int rop_set_hash(redisContext *conn, char *key, char *field, char *value)
 {
-	if(value !=NULL){
-		free(value);
-	}
+    int retn = 0;
+	redisReply *reply = NULL;
+	reply = redisCommand(conn, "hset %s %s %s", key, field, value);
+    //rop_test_reply_type(reply);    
+    //printf("type:%d\n", reply->type);
+    if (reply->type != REDIS_REPLY_INTEGER) {
+        retn = -1;
+        goto END;
+    }
+	retn =(int) reply->integer;
+	
+
+END:
+	freeReplyObject(reply);
+    return retn;
+}
+/* -------------------------------------------*/
+/**
+ * @brief  执行hget 命令
+ *
+ * @param conn 连接句柄
+ * @param key  fileds value（用户分配空间）是相应参数
+ *
+ * @returns   
+ *          1/0 succ, -1 fail
+ */
+/* -------------------------------------------*/
+int rop_get_hash(redisContext *conn, char *key, char *field, char *value)
+{
+    int retn = 0;
+	redisReply *reply = NULL;
+	reply = redisCommand(conn, "hget %s %s", key, field);
+    if (reply->type != REDIS_REPLY_STRING ) {
+        retn = reply->type;
+        goto END;
+    }
+	strcpy(value,reply->str);
+END:
+	freeReplyObject(reply);
+    return retn;
 }

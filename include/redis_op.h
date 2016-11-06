@@ -394,25 +394,40 @@ void rop_test_reply_type(redisReply *reply);
 
 /* -------------------------------------------*/
 /**
- * @brief  get 插入的stirng 命令
+ * @brief  执行get命令获得stirng 
  *
  * @param conn 连接句柄
  * @param key  
- * @param value string 类型的value
+ * @param value string 类型的value(用户分配内存)
  *
  * @returns   
  *          0 succ, failed return value类型（redisReply结构体的type值）
  */
 /* -------------------------------------------*/
-int rop_get_string(redisContext *conn, char *key, char **value);
-
+int rop_get_string(redisContext *conn, char *key, char *value);
+ 
 /* -------------------------------------------*/
 /**
- * 释放rop_get_string时mallo的内存
+ * @brief  set 插入的hash 命a令
  *
- * @param value string 类型的value
+ * @param conn 连接句柄
+ * @param key  fileds value是相应参数
+ *
+ * @returns   
+ *          1/0 succ, -1 fail
  */
 /* -------------------------------------------*/
- void rop_get_string_free(char *value);
- 
+int rop_set_hash(redisContext *conn, char *key, char *field, char *value);
+/* -------------------------------------------*/
+/**
+ * @brief  执行hget 命令
+ *
+ * @param conn 连接句柄
+ * @param key  fileds value（用户分配空间）是相应参数
+ *
+ * @returns   
+ *          1/0 succ, -1 fail
+ */
+/* -------------------------------------------*/
+int rop_get_hash(redisContext *conn, char *key, char *field, char *value);
 #endif
