@@ -27,6 +27,7 @@ ALL:$(target)
 #生成所有的.o文件 将src的.o生成到当前目录，将test中的.o生成到test中
 $(obj):%.o:%.c
 	$(CC) -c $< -o $@ $(CPPFLAGS) $(CFLAGS) 
+	echo $(obj)
 $(obj_test):%.o:%.c
 	$(CC) -c $< -o $@ $(CPPFLAGS) $(CFLAGS) 
 
@@ -44,7 +45,7 @@ $(redis_op_test):./test/redis_op_test.o   ./src/redis_op.o $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
 #myecho程序
-$(myecho):./test/myecho.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_upload_file.o ./src/redis_op.o
+$(myecho):./test/myecho.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_op.o ./src/redis_op.o
 	$(CC) $^ -o $@ $(LIBS)
 
 

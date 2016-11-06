@@ -32,7 +32,8 @@ extern char **environ;
 #include "fcgi_stdio.h"
 #include "make_log.h"
 #include "util_cgi.h"
-#include "fdfs_upload_file.h"
+#include "fdfs_op.h"
+#include "redis_op.h"
 #define FDFS_LOG_MODULE "test"
 #define FDFS_LOG_PROC "fdfs_test"
 
@@ -106,6 +107,14 @@ int main ()
     char **initialEnv = environ;
     int count = 0;
 	char *out_data = NULL;
+	redisContext *redis_conn;
+	char fileid[1024];
+	strcpy(fileid,"fileid");//临时用*******************************************************************
+
+	time_t now;   
+	struct tm *timenow;   
+	char str_time[100] = {0};   
+	  
 
     while (FCGI_Accept() >= 0) {
         char *contentLength = getenv("CONTENT_LENGTH");
@@ -159,10 +168,44 @@ int main ()
 			//将文件数据上传到fdfs中,并获取id
 			char id[128] = {0};
 			fdfs_upload_file(file_name,id);
+			
+			//删除临时文件
+			unlink(file_name);
 
 			//去除id中末尾的换行
 			id[strlen(id)-1]=0;
 			LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "id:[%s]",id);
+
+			//初始化redis数据库
+			redis_conn = rop_connectdb_nopwd("127.0.0.1", "6379");
+			if (redis_conn == NULL) {
+				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "conn error");
+				//缺一个错误处理
+			}
+
+			//存储FILEID_NAME_HASH表（文件名）
+			if(0 != rop_set_hash(redis_conn,"FILEID_NAME_HASH", fileid, file_name))
+			{
+				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_NAME_HASH error");
+				//缺一个错误处理
+			}
+
+			//存储FILEID_TIME_HASH表（时间）
+			time(&now);   
+			timenow = localtime(&now);   
+			asctime_r(timenow,str_time);
+			if(0 != rop_set_hash(redis_conn,"FILEID_TIME_HASH", fileid, file_name))
+			{
+				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_TIME_HASH error");
+				//缺一个错误处理
+			}
+			
+			//存储FILEID_URL_HASH表（URL路径）
+
+
+			//断开数据库
+			rop_disconnect(redis_conn);
+
 
             printf("\n</pre><p>\n");
         }
