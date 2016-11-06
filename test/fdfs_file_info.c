@@ -6,7 +6,7 @@
 #define FDFS_LOG_MODULE "test"
 #define FDFS_LOG_PROC "fdfs_file_info"
 
-int fdfs_upload_file(char *id,char *info)
+int fdfs_file_info(char *id,char *info)
 {
 	int fd[2];
 /*	char *file_name = argv[1];
@@ -45,12 +45,37 @@ int fdfs_upload_file(char *id,char *info)
 	}
 	return 0;
 }
+int fdfs_file_ip(char *id,char *ip)
+{
+	char *tmp_ip;
+	char *tmp_ip_end;
+	char info[1024] = {0};
+	int ret;
+	fdfs_file_info(id,info);
+	tmp_ip = strstr(info,"source ip address");
+	if(ip == NULL)
+	{
+		ret = -1;
+		strcpy(ip,"wrong fileid");
+		goto END;
+	}
+	tmp_ip = tmp_ip + strlen("source ip address")+ 2;
+	tmp_ip_end = strstr(tmp_ip,"\n");
+	*tmp_ip_end = '\0';
+	strcpy(ip,tmp_ip);
+
+	//printf("[%s]\n",tmp_ip);
+END:
+	return ret;
+}
 #if 1
 int main(int argc,char *argv[])
 {
-	char id[1024];
-	fdfs_upload_file("group1/M00/00/00/wKiVglgfHdKAR_sOAAABxeCuiM8637.png",id);
-	printf("%s",id);
+	char info[1024];
+	fdfs_file_info("group1/M00/00/00/wKiVglgfHdKAR_sOAAABxeCuiM8637.png",info);
+	printf("%s",info);
+	fdfs_file_ip("group1/M00/00/00/wKiVglgfHdKAR_sOAAABxeCuiM8637.png",info);
+	printf("%s",info);
 	return 0;
 }
 #endif
