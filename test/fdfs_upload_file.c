@@ -32,9 +32,7 @@ int fdfs_upload_file(char *file_name,char *id)
 		memset(buf,0,1024);
 		close(fd[1]);
 		read(fd[0],buf,1024);
-		//printf("%s",buf);
 		strcpy(id,buf);
-		LOG(FDFS_LOG_MODULE, FDFS_LOG_PROC,"file ID:[%s]",buf);
 		close(fd[0]);
 		wait(NULL);
 	}
@@ -42,11 +40,12 @@ int fdfs_upload_file(char *file_name,char *id)
 	{
 		close(fd[0]);
 		dup2(fd[1],STDOUT_FILENO);
-		execlp("fdfs_upload_file" ,"fdfs_upload_file","/etc/fdfs/client.conf", file_name,NULL);
+		execl("/usr/bin/fdfs_upload_file" ,"fdfs_upload_file","/etc/fdfs/client.conf", file_name,NULL);
 		close(fd[1]);
 	}
 	return 0;
 }
+#if 1
 int main(int argc,char *argv[])
 {
 	char id[1024];
@@ -54,3 +53,4 @@ int main(int argc,char *argv[])
 	printf("%s",id);
 	return 0;
 }
+#endif
