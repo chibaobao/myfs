@@ -71,10 +71,10 @@ END:
 #if 1
 int main(int argc,char *argv[])
 {
-	char info[1024];
-	fdfs_file_info("group1/M00/00/00/wKiVglgfHdKAR_sOAAABxeCuiM8637.png",info);
-	printf("%s",info);
-	fdfs_file_ip("group1/M00/00/00/wKiVglgfHdKAR_sOAAABxeCuiM8637.png",info);
+	char info[1024] = {0};
+	//fdfs_file_info("group1/M00/00/00/wKiVglgfHdKAR_sOAAABxeCuiM8637.png",info);
+	//printf("%s",info);
+	fdfs_file_ip("group1/M00/00/00/wKiVglgfXCmABgseAAABxeCuiM8849.png",info);
 	printf("%s",info);
 	return 0;
 }

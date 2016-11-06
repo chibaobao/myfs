@@ -36,7 +36,23 @@ extern char **environ;
 #include "redis_op.h"
 #define FDFS_LOG_MODULE "test"
 #define FDFS_LOG_PROC "fdfs_test"
-
+int get_url(char *id,char *url)
+{
+	char ip[64] = {0};
+	char my_url[1024] = {0};
+	LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "url_id:[%s]",id);
+	if(0 != fdfs_file_ip(id,ip))
+	{
+		LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set fdfs_file_ip error");
+		return -1;
+	}
+	strcpy(my_url,"http://");
+	strcat(my_url,ip);
+	strcat(my_url,"/");
+	strcat(my_url,id);
+	strcpy(url,my_url);
+	return 0;
+}
 //更加数据流得到文件名和文件内容，并把文件内容存到当前路径下相应文件名
 int get_file(char *out_data,int data_len,char *file_name)
 {
@@ -108,7 +124,10 @@ int main ()
     int count = 0;
 	char *out_data = NULL;
 	redisContext *redis_conn;
-	char fileid[1024];
+	char id[128] = {0};//执行fdfs_upload_file后返回的id
+	char file_name[1024]={0};
+	char fileid[1024] = {0};
+	char url[1024] = {0};
 	strcpy(fileid,"fileid");//临时用*******************************************************************
 
 	time_t now;   
@@ -157,7 +176,6 @@ int main ()
             }
 
 			//取得文件内容，和文件名，并把数据写入对应文件名
-			char file_name[1024]={0};
 			get_file(out_data,len,file_name);
 			if(out_data !=NULL)
 			{
@@ -166,7 +184,6 @@ int main ()
 
 
 			//将文件数据上传到fdfs中,并获取id
-			char id[128] = {0};
 			fdfs_upload_file(file_name,id);
 			
 			//删除临时文件
@@ -201,6 +218,12 @@ int main ()
 			}
 			
 			//存储FILEID_URL_HASH表（URL路径）
+			get_url(id,url);
+			if(0 != rop_set_hash(redis_conn,"FILEID_URL_HASH", fileid, url))
+			{
+				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_TIME_HASH error");
+				//缺一个错误处理
+			}
 
 
 			//断开数据库
