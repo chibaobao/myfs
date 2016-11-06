@@ -15,10 +15,11 @@ obj_test = $(patsubst %.c, %.o, $(test))
 
 #生成test目标
 fdfs_upload_file = ./test/fdfs_upload_file
+fdfs_file_info = ./test/fdfs_file_info
 redis_op_test = ./test/redis_op_test
 myecho = ./test/myecho
 
-target=$(fdfs_upload_file)	$(redis_op_test) $(myecho)
+target=$(fdfs_upload_file)	$(redis_op_test) $(myecho) $(fdfs_file_info)
 
 ALL:$(target)
 
@@ -30,8 +31,12 @@ $(obj_test):%.o:%.c
 	$(CC) -c $< -o $@ $(CPPFLAGS) $(CFLAGS) 
 
 
-#fdfs_client_test程序
+#fdfs_upload_file程序
 $(fdfs_upload_file):./test/fdfs_upload_file.o  $(LOG)
+	$(CC) $^ -o $@ $(LIBS)
+
+#fdfs_upload_file程序
+$(fdfs_file_info):./test/fdfs_file_info.o  $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
 #redis_op_test程序
@@ -39,7 +44,7 @@ $(redis_op_test):./test/redis_op_test.o   ./src/redis_op.o $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
 #myecho程序
-$(myecho):./test/myecho.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_upload_file.o
+$(myecho):./test/myecho.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_upload_file.o ./src/redis_op.o
 	$(CC) $^ -o $@ $(LIBS)
 
 
