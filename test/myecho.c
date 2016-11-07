@@ -126,9 +126,7 @@ int main ()
 	redisContext *redis_conn;
 	char id[128] = {0};//执行fdfs_upload_file后返回的id
 	char file_name[1024]={0};
-	char fileid[1024] = {0};
 	char url[1024] = {0};
-	strcpy(fileid,"fileid");//临时用*******************************************************************
 
 	time_t now;   
 	struct tm *timenow;   
@@ -201,7 +199,7 @@ int main ()
 			}
 
 			//存储FILEID_NAME_HASH表（文件名）
-			if(0 != rop_set_hash(redis_conn,"FILEID_NAME_HASH", fileid, file_name))
+			if(0 != rop_set_hash(redis_conn,"FILEID_NAME_HASH", id, file_name))
 			{
 				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_NAME_HASH error");
 				//缺一个错误处理
@@ -211,7 +209,7 @@ int main ()
 			time(&now);   
 			timenow = localtime(&now);   
 			asctime_r(timenow,str_time);
-			if(0 != rop_set_hash(redis_conn,"FILEID_TIME_HASH", fileid, file_name))
+			if(0 != rop_set_hash(redis_conn,"FILEID_TIME_HASH", id, file_name))
 			{
 				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_TIME_HASH error");
 				//缺一个错误处理
@@ -219,7 +217,7 @@ int main ()
 			
 			//存储FILEID_URL_HASH表（URL路径）
 			get_url(id,url);
-			if(0 != rop_set_hash(redis_conn,"FILEID_URL_HASH", fileid, url))
+			if(0 != rop_set_hash(redis_conn,"FILEID_URL_HASH", id, url))
 			{
 				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_TIME_HASH error");
 				//缺一个错误处理
