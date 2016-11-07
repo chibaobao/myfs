@@ -28,59 +28,65 @@ static const char rcsid[] = "$Id: echo.c,v 1.5 1999/07/28 00:29:37 roberts Exp $
 extern char **environ;
 #endif
 
+#include <string.h>
 #include "fcgi_stdio.h"
+#include "cJSON.h"
 
-
-static void PrintEnv(char *label, char **envp)
-{
-    printf("%s:<br>\n<pre>\n", label);
-    for ( ; *envp != NULL; envp++) {
-        printf("%s\n", *envp);
-    }
-    printf("</pre><p>\n");
-}
 
 int main ()
 {
-    char **initialEnv = environ;
-    int count = 0;
+    cJSON *root = NULL;
+    cJSON *array = NULL;
+    cJSON *tmp = NULL;
+    char *out_root = NULL;
+    char id[100] = {0};
+    int kind = 0;
+    char title_m[1024] = {0};
+    char title_s[1024] = {0};
+    char descrip[64] = {0};//实际是creat_time
+    char picurl_m[1024] = {0};
+    char url[1024] = {0};
+    int pv = 0;
+    int hot = 0;
 
-    while (FCGI_Accept() >= 0) {
-        char *contentLength = getenv("CONTENT_LENGTH");
-        int len;
+    strcpy(id,"12235id");
+    strcpy(title_m,"12235tile_m");
+    strcpy(title_s,"12235 title_s");
+    strcpy(descrip,"1223 descrip");
+    strcpy(picurl_m,"http://192.168.149.130/static/file_png/pdf.png");
+    strcpy(url,"12235id url");
+    kind = 2;
+    pv =1;
+    hot = 0;
 
-	printf("Content-type: text/html\r\n"
-	    "\r\n"
-	    "<title>FastCGI echo</title>"
-	    "<h1>FastCGI echo</h1>\n"
-            "Request number %d,  Process ID: %d<p>\n", ++count, getpid());
+    while (FCGI_Accept() >= 0) 
+    {
+        printf("Content-type: text/html\r\n"
+            "\r\n");
+        root = cJSON_CreateObject();
+        array = cJSON_CreateArray();
+        tmp = cJSON_CreateObject();
 
-        if (contentLength != NULL) {
-            len = strtol(contentLength, NULL, 10);
-        }
-        else {
-            len = 0;
-        }
+        cJSON_AddStringToObject(tmp,"id",id);
+        cJSON_AddNumberToObject(tmp,"kind",kind);
+        cJSON_AddStringToObject(tmp,"title_m",title_m);
+        cJSON_AddStringToObject(tmp,"title_s",title_s);
+        cJSON_AddStringToObject(tmp,"descrip",descrip);
+        cJSON_AddStringToObject(tmp,"picurl_m",picurl_m);
+        cJSON_AddStringToObject(tmp,"url",url);
+        cJSON_AddNumberToObject(tmp,"pv",pv);
+        cJSON_AddNumberToObject(tmp,"hot",hot);
 
-        if (len <= 0) {
-	    printf("No data from standard input.<p>\n");
-        }
-        else {
-            int i, ch;
+        cJSON_AddItemToArray(array,tmp);
+        cJSON_AddItemToObject(root,"games",array);
+        
+        out_root = cJSON_Print(root);
 
-	    printf("Standard input:<br>\n<pre>\n");
-            for (i = 0; i < len; i++) {
-                if ((ch = getchar()) < 0) {
-                    printf("Error: Not enough bytes received on standard input<p>\n");
-                    break;
-		}
-                putchar(ch);
-            }
-            printf("\n</pre><p>\n");
-        }
+        printf("%s",out_root);
 
-        PrintEnv("Request environment", environ);
-        PrintEnv("Initial environment", initialEnv);
+        cJSON_Delete(root);
+        free(out_root);
+
     } /* while */
 
     return 0;

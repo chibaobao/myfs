@@ -129,7 +129,6 @@ int main ()
 	char url[1024] = {0};
 
 	time_t now;   
-	struct tm *timenow;   
 	char str_time[100] = {0};   
 	  
 
@@ -207,9 +206,10 @@ int main ()
 
 			//存储FILEID_TIME_HASH表（时间）
 			time(&now);   
-			timenow = localtime(&now);   
-			asctime_r(timenow,str_time);
-			if(0 != rop_set_hash(redis_conn,"FILEID_TIME_HASH", id, file_name))
+			//timenow = localtime(&now);   
+			//asctime_r(timenow,str_time);
+            strftime(str_time,sizeof(str_time)-1 , "%Y-%m-%d %H:%M:%S", localtime(&now));
+			if(0 != rop_set_hash(redis_conn,"FILEID_TIME_HASH", id, str_time))
 			{
 				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_TIME_HASH error");
 				//缺一个错误处理

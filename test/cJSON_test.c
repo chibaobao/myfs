@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	cJSON_Delete(root);//注意释放root时girls_array也会被释放
 	printf("%s\n", out);
 	printf("+++++++++++++++++++++++++++\n");
-	get(out);
+	get(out);//测试get相关函数
 
 	free(out);
 	return 0;
