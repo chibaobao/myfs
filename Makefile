@@ -17,10 +17,12 @@ obj_test = $(patsubst %.c, %.o, $(test))
 fdfs_upload_file = ./test/fdfs_upload_file
 fdfs_file_info = ./test/fdfs_file_info
 redis_op_test = ./test/redis_op_test
-myecho = ./test/myecho
+echo = ./test/echo
+upload_file = ./test/upload_file
+download_file = ./test/download_file
 cJON_test = ./test/cJSON_test
 
-target=$(fdfs_upload_file)	$(redis_op_test) $(myecho) $(fdfs_file_info) $(cJON_test)
+target=$(fdfs_upload_file)	$(redis_op_test) $(echo) $(upload_file) $(fdfs_file_info) $(cJON_test) $(download_file)
 
 ALL:$(target)
 
@@ -28,7 +30,6 @@ ALL:$(target)
 #生成所有的.o文件 将src的.o生成到当前目录，将test中的.o生成到test中
 $(obj):%.o:%.c
 	$(CC) -c $< -o $@ $(CPPFLAGS) $(CFLAGS) 
-	echo $(obj)
 $(obj_test):%.o:%.c
 	$(CC) -c $< -o $@ $(CPPFLAGS) $(CFLAGS) 
 
@@ -37,7 +38,7 @@ $(obj_test):%.o:%.c
 $(fdfs_upload_file):./test/fdfs_upload_file.o  $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
-#fdfs_upload_file程序
+#fdfs_file_info程序
 $(fdfs_file_info):./test/fdfs_file_info.o  $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
@@ -45,9 +46,18 @@ $(fdfs_file_info):./test/fdfs_file_info.o  $(LOG)
 $(redis_op_test):./test/redis_op_test.o   ./src/redis_op.o $(LOG)
 	$(CC) $^ -o $@ $(LIBS)
 
-#myecho程序
-$(myecho):./test/myecho.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_op.o ./src/redis_op.o
+#upload_file程序
+$(upload_file):./test/upload_file.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_op.o ./src/redis_op.o
 	$(CC) $^ -o $@ $(LIBS)
+
+#download_file程序
+$(download_file):./test/download_file.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_op.o ./src/redis_op.o
+	$(CC) $^ -o $@ $(LIBS)
+
+#echo程序
+$(echo):./test/echo.o   
+	$(CC) $^ -o $@ $(LIBS)
+
 #cJON_test 程序
 $(cJON_test):./test/cJSON_test.o   ./src/cJSON.o  
 	$(CC) $^ -o $@ $(LIBS)
