@@ -2,7 +2,7 @@
 CC=gcc
 CPPFLAGS= -I./include  
 CFLAGS=-Wall 
-LIBS= -lhiredis -lpthread -lfcgi
+LIBS= -lhiredis -lpthread -lfcgi -lm
 LOG = ./src/make_log.o
 #找到src和test目录下所有的.c文件
 src = $(wildcard ./src/*.c)
@@ -18,8 +18,9 @@ fdfs_upload_file = ./test/fdfs_upload_file
 fdfs_file_info = ./test/fdfs_file_info
 redis_op_test = ./test/redis_op_test
 myecho = ./test/myecho
+cJON_test = ./test/cJSON_test
 
-target=$(fdfs_upload_file)	$(redis_op_test) $(myecho) $(fdfs_file_info)
+target=$(fdfs_upload_file)	$(redis_op_test) $(myecho) $(fdfs_file_info) $(cJON_test)
 
 ALL:$(target)
 
@@ -46,6 +47,9 @@ $(redis_op_test):./test/redis_op_test.o   ./src/redis_op.o $(LOG)
 
 #myecho程序
 $(myecho):./test/myecho.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_op.o ./src/redis_op.o
+	$(CC) $^ -o $@ $(LIBS)
+#cJON_test 程序
+$(cJON_test):./test/cJSON_test.o   ./src/cJSON.o  
 	$(CC) $^ -o $@ $(LIBS)
 
 
