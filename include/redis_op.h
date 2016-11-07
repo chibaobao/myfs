@@ -343,6 +343,11 @@ int rop_trim_list(redisContext *conn, char *key, int begin, int end);
  *
  * @param conn		已经建立的链接
  * @param key		链表名
+ * @param from_pos  开始位置
+ * @param count     结束位置
+ * @param values    结果，用户分配空间
+ *                  eg RVALUES p=(n*VALUES_ID_SIZE);
+ *                  p[i]遍历
  *
  * @returns   
  *			0  SUCC

@@ -196,6 +196,12 @@ int main ()
 				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "conn error");
 				//缺一个错误处理
 			}
+            //存储FILEID_LIST表（文件id的链表）
+            if(rop_list_push(redis_conn,"FILEID_LIST",id) !=0)
+            {
+				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_LIST error");
+				//缺一个错误处理
+            }
 
 			//存储FILEID_NAME_HASH表（文件名）
 			if(0 != rop_set_hash(redis_conn,"FILEID_NAME_HASH", id, file_name))

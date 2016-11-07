@@ -51,7 +51,7 @@ $(upload_file):./test/upload_file.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_op.o .
 	$(CC) $^ -o $@ $(LIBS)
 
 #download_file程序
-$(download_file):./test/download_file.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_op.o ./src/redis_op.o ./src/cJSON.o
+$(download_file):./test/download_file.o   ./src/util_cgi.o  $(LOG)  ./src/redis_op.o ./src/cJSON.o
 	$(CC) $^ -o $@ $(LIBS)
 
 #echo程序
