@@ -1,6 +1,7 @@
 # 分布式存储系统
 
 ## 文件结构
+
 - src基础组件和基础模块目录
 - include基础组件的头文件，和其他需要的头文件
 - test测试目录，该文件夹下.c都可以被makfile编译执行，是src相关组件的测试程序和部分服务器主程序
@@ -9,6 +10,7 @@
 - bin存放部分这执行的服务器程序
 
 ## 各文件功能
+
 - 主目录
  - start_up.sh启动redis以及fdfs的tracker和storage
 - src，include和test
@@ -17,3 +19,10 @@
  - util_cgi.c util_cgi.h 字符串处理基础组件
  - fdfs_upload_file.c  fdfs_upload_file.h实现fdfs_upload_file命令相同功能的函数封装test目录下的是测试程序
  - myecho.c处理http请求的函数，集成了获取文件数据流，解析文件数据流，并存储文件数据流
+
+## 环境配置
+- fastdfs
+- redis
+- negix
+- fastdfs-nginx-module
+    - 编译nginx时，./congure之后，修改nginx-1.10.1/objs/Makefile中的- I找到所缺.h目录添加就可以
