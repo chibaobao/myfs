@@ -203,6 +203,14 @@ int main ()
 				//缺一个错误处理
             }
 
+            //存储FILEID_PV_ZSET表
+            if(rop_zset_increment(redis_conn, "FILEID_PV_ZSET", id) !=0)
+            {
+				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_LIST error");
+				//缺一个错误处理
+            }
+            
+            
 			//存储FILEID_NAME_HASH表（文件名）
 			if(0 != rop_set_hash(redis_conn,"FILEID_NAME_HASH", id, file_name))
 			{

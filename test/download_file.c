@@ -53,9 +53,12 @@ int main ()
     cJSON *array = NULL;
     cJSON *tmp = NULL;
 
+    char c_tmp[100];
+
 	redisContext *redis_conn;
     RVALUES list_value_p;
     int get_num = 8;
+    char cmd[100];
 
     char *out_root = NULL;
     char id[100] = {0};
@@ -90,6 +93,39 @@ int main ()
             "\r\n");
         //读取网页中QUERY_STRING中的变量值
         query = getenv("QUERY_STRING");
+        
+        query_parse_key_value(query, "cmd", cmd, &ch_len);
+        //如果cmd指令是increase，也就是点击了下载按钮
+        if(strcmp(cmd,"increase") == 0)
+        {
+
+            //读取QUERY_STRING中的变量
+            query_parse_key_value(query, "fileId", id, &ch_len);
+            LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "url id:[%s]",id);
+            char *id_F[5];
+            id_F[0] = (char*)id;
+            for(i=1;i<5;i++)
+            {
+                id_F[i] =  strstr(id_F[i-1],"%2F");
+                *(id_F[i]) = '/';
+                *(id_F[i]+1) = '\0';
+                id_F[i] = id_F[i] +3;
+            }
+            LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "url id:[%s]",id);
+            for(i=1;i<5;i++)
+            {
+                strcpy(c_tmp,id_F[i]);
+                strcat(id,c_tmp);
+            }
+            LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "url id2:[%s]",id);
+            if(0 != rop_zset_increment(redis_conn, "FILEID_PV_ZSET", id))
+            {
+                LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "rop_zset_inc error");
+            }
+
+            continue;
+        }
+
         query_parse_key_value(query, "fromId", c_fromid, &ch_len);
         fromid = atoi(c_fromid);
         query_parse_key_value(query, "count", c_count, &ch_len);
@@ -111,7 +147,8 @@ int main ()
             rop_get_hash(redis_conn, "FILEID_NAME_HASH", id, title_m);
             rop_get_hash(redis_conn, "FILEID_TIME_HASH", id, descrip);
             rop_get_hash(redis_conn, "FILEID_URL_HASH", id,url );
-LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "get_num:%d,value:[%s]",i,list_value_p[i]);
+            pv = rop_zset_get_score(redis_conn, "FILEID_PV_ZSET", id);
+
 
             //将数据存入JSON
             tmp = cJSON_CreateObject();

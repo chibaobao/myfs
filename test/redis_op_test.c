@@ -82,5 +82,12 @@ int main(int argc, char *argv[])
     }
     free(list_value_p);
 
+    //sorted sets
+    rop_zset_increment(redis_conn,"myset" , "one");
+    printf("one value:%d\n", rop_zset_get_score(redis_conn,"myset" , "one"));
+    rop_zset_increment(redis_conn,"myset" , "one");
+    printf("one value:%d\n", rop_zset_get_score(redis_conn,"myset" , "one"));
+    
+
 	return 0;
 }
