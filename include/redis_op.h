@@ -413,7 +413,7 @@ int rop_get_string(redisContext *conn, char *key, char *value);
  
 /* -------------------------------------------*/
 /**
- * @brief  set 插入的hash 命a令
+ * @brief  set 插入的hash 命令(rop_hash_set)
  *
  * @param conn 连接句柄
  * @param key  fileds value是相应参数
@@ -425,7 +425,7 @@ int rop_get_string(redisContext *conn, char *key, char *value);
 int rop_set_hash(redisContext *conn, char *key, char *field, char *value);
 /* -------------------------------------------*/
 /**
- * @brief  执行hget 命令
+ * @brief  执行hget 命令(rop_hash_get)
  *
  * @param conn 连接句柄
  * @param key  fileds value（用户分配空间）是相应参数

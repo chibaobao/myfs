@@ -1,8 +1,8 @@
 
 CC=gcc
-CPPFLAGS= -I./include  
+CPPFLAGS= -I./include  -I /usr/include/mysql
 CFLAGS=-Wall 
-LIBS= -lhiredis -lpthread -lfcgi -lm
+LIBS= -lhiredis -lpthread -lfcgi -lm  -lmysqlclient
 LOG = ./src/make_log.o
 #找到src和test目录下所有的.c文件
 src = $(wildcard ./src/*.c)
@@ -20,9 +20,13 @@ redis_op_test = ./test/redis_op_test
 echo = ./test/echo
 upload_file = ./test/upload_file
 download_file = ./test/download_file
-cJON_test = ./test/cJSON_test
+reg_cgi = ./test/reg_cgi
+login_cgi = ./test/login_cgi
+dao_mysql_test = ./test/dao_mysql_test 
+cJSON_test = ./test/cJSON_test
 
-target=$(fdfs_upload_file)	$(redis_op_test) $(echo) $(upload_file) $(fdfs_file_info) $(cJON_test) $(download_file)
+target=$(fdfs_upload_file)	$(redis_op_test) $(echo) $(upload_file) $(fdfs_file_info) $(cJSON_test) $(download_file) $(reg_cgi) \
+		$(dao_mysql_test) $(login_cgi)
 
 ALL:$(target)
 
@@ -54,12 +58,24 @@ $(upload_file):./test/upload_file.o   ./src/util_cgi.o  $(LOG) ./src/fdfs_op.o .
 $(download_file):./test/download_file.o   ./src/util_cgi.o  $(LOG)  ./src/redis_op.o ./src/cJSON.o
 	$(CC) $^ -o $@ $(LIBS)
 
+#reg_cgi程序
+$(reg_cgi):./test/reg_cgi.o	$(LOG)	./src/cJSON.o	./src/util_cgi.o  $(LOG)  ./src/redis_op.o ./src/dao_mysql.o
+	$(CC) $^ -o $@ $(LIBS)  
+
+#login_cgi程序
+$(login_cgi):./test/login_cgi.o	$(LOG)	./src/cJSON.o	./src/util_cgi.o  $(LOG)  ./src/redis_op.o ./src/dao_mysql.o
+	$(CC) $^ -o $@ $(LIBS)  
+
 #echo程序
 $(echo):./test/echo.o   
 	$(CC) $^ -o $@ $(LIBS)
 
-#cJON_test 程序
-$(cJON_test):./test/cJSON_test.o   ./src/cJSON.o  
+#cJSON_test 程序
+$(cJSON_test):./test/cJSON_test.o   ./src/cJSON.o  
+	$(CC) $^ -o $@ $(LIBS)
+
+# dao_mysql_test程序
+$(dao_mysql_test):./test/dao_mysql_test.o   ./src/dao_mysql.o 
 	$(CC) $^ -o $@ $(LIBS)
 
 

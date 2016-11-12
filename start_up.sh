@@ -7,4 +7,4 @@ sudo /usr/bin/fdfs_storaged ./conf/storage.conf restart
 redis-server ./conf/redis.conf
 
 #重新加载nginx
-/usr/local/nginx/sbin/nginx -s reload
+sudo /usr/local/nginx/sbin/nginx -s reload

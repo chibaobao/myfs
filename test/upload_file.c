@@ -34,6 +34,7 @@ extern char **environ;
 #include "util_cgi.h"
 #include "fdfs_op.h"
 #include "redis_op.h"
+#include "mycon.h"
 #define FDFS_LOG_MODULE "test"
 #define FDFS_LOG_PROC "fdfs_test"
 int get_url(char *id,char *url)
@@ -109,146 +110,128 @@ int get_file(char *out_data,int data_len,char *file_name)
 
 	return 0;
 }
-static void PrintEnv(char *label, char **envp)
-{
-    printf("%s:<br>\n<pre>\n", label);
-    for ( ; *envp != NULL; envp++) {
-        printf("%s\n", *envp);
-    }
-    printf("</pre><p>\n");
-}
 
 int main ()
 {
-    char **initialEnv = environ;
-    int count = 0;
 	char *out_data = NULL;
 	redisContext *redis_conn;
 	char id[128] = {0};//执行fdfs_upload_file后返回的id
 	char file_name[1024]={0};
 	char url[1024] = {0};
+    char user[512] = {0};
 
 	time_t now;   
 	char str_time[100] = {0};   
+    char fileid_list_table[512];//存储用户的文件列表的表名如："FILEID_LIST_aa"就是存储aa用户所有文ID的hash表表名
 	  
 
     while (FCGI_Accept() >= 0) {
+
+        int i, ch;
         char *contentLength = getenv("CONTENT_LENGTH");
         int len;
+        len = strtol(contentLength, NULL, 10);
+        printf("Content-type: text/html\r\n"
+            "\r\n");
 
-
-	printf("Content-type: text/html\r\n"
-	    "\r\n"
-	    "<title>FastCGI echo2</title>"
-	    "<h1>FastCGI echo2</h1>\n"
-            "Request number %d,  Process ID: %d<p>\n", ++count, getpid());
-
-        if (contentLength != NULL) 
-		{
-            len = strtol(contentLength, NULL, 10);
-        }
-        else 
-		{
-            len = 0;
+        out_data = (char*)malloc(sizeof(char)*len);//得到前端发送数据的长度并开辟存储空间
+        if(out_data == NULL)
+        {
+            printf("upload error");
+            goto END;
         }
 
-        if (len <= 0) 
-		{
-			printf("No data from standard input.<p>\n");
-        }
-        else 
-		{
-            int i, ch;
-			out_data = (char*)malloc(sizeof(char)*len);
-			printf("Standard input:<br>\n<pre>\n");
-            for (i = 0; i < len; i++) 
-			{
-                if ((ch = getchar()) < 0) 
-				{
-                    printf("Error: Not enough bytes received on standard input<p>\n");
-                    break;
-				}
-				//putchar(ch);
-				out_data[i] = ch;
-            }
-
-			//取得文件内容，和文件名，并把数据写入对应文件名
-			get_file(out_data,len,file_name);
-			if(out_data !=NULL)
-			{
-				free(out_data);
-			}
-
-
-			//将文件数据上传到fdfs中,并获取id
-			fdfs_upload_file(file_name,id);
-			
-			//删除临时文件
-			unlink(file_name);
-
-			//去除id中末尾的换行
-			id[strlen(id)-1]=0;
-			LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "id:[%s]",id);
-
-			//初始化redis数据库
-			redis_conn = rop_connectdb_nopwd("127.0.0.1", "6379");
-			if (redis_conn == NULL) {
-				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "conn error");
-				//缺一个错误处理
-			}
-            //存储FILEID_LIST表（文件id的链表）
-            if(rop_list_push(redis_conn,"FILEID_LIST",id) !=0)
+		char *query_string = getenv("QUERY_STRING");
+        query_parse_key_value(query_string, "user", user, NULL);
+        memset(fileid_list_table,0,sizeof(fileid_list_table));
+        strcat(fileid_list_table,"FILEID_LIST_");
+        strcat(fileid_list_table,user);
+        //读取上传的数据
+        for (i = 0; i < len; i++) 
+        {
+            if ((ch = getchar()) < 0) 
             {
-				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_LIST error");
-				//缺一个错误处理
+                printf("Error: Not enough bytes received on standard input<p>\n");
+                break;
             }
-
-            //存储FILEID_PV_ZSET表
-            if(rop_zset_increment(redis_conn, "FILEID_PV_ZSET", id) !=0)
-            {
-				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_LIST error");
-				//缺一个错误处理
-            }
-            
-            
-			//存储FILEID_NAME_HASH表（文件名）
-			if(0 != rop_set_hash(redis_conn,"FILEID_NAME_HASH", id, file_name))
-			{
-				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_NAME_HASH error");
-				//缺一个错误处理
-			}
-
-			//存储FILEID_TIME_HASH表（时间）
-			time(&now);   
-			//timenow = localtime(&now);   
-			//asctime_r(timenow,str_time);
-            strftime(str_time,sizeof(str_time)-1 , "%Y-%m-%d %H:%M:%S", localtime(&now));
-			if(0 != rop_set_hash(redis_conn,"FILEID_TIME_HASH", id, str_time))
-			{
-				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_TIME_HASH error");
-				//缺一个错误处理
-			}
-			
-			//存储FILEID_URL_HASH表（URL路径）
-			get_url(id,url);
-			if(0 != rop_set_hash(redis_conn,"FILEID_URL_HASH", id, url))
-			{
-				LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_TIME_HASH error");
-				//缺一个错误处理
-			}
-
-
-			//断开数据库
-			rop_disconnect(redis_conn);
-
-
-            printf("\n</pre><p>\n");
+           // putchar(ch);
+            out_data[i] = ch;//得到前台发送的数据流
         }
 
-        PrintEnv("Request environment", environ);
-        PrintEnv("Initial environment", initialEnv);
-		char *str = getenv("QUERY_STRING");
-		LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "query:[%s]",str);
+        //取得文件内容，和文件名，并把数据写入对应文件名
+        get_file(out_data,len,file_name);
+        if(out_data !=NULL)
+        {
+            free(out_data);
+        }
+
+
+        //将文件数据上传到fdfs中,并获取id
+        fdfs_upload_file(file_name,id);
+        
+        //删除临时文件
+        unlink(file_name);
+
+        //去除id中末尾的换行
+        id[strlen(id)-1]=0;
+        LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "id:[%s]",id);
+
+        //初始化redis数据库
+        redis_conn = rop_connectdb_nopwd(REDIS_SERVER_IP, REDIS_SERVER_PORT);
+        if (redis_conn == NULL) {
+            LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "conn error");
+            //缺一个错误处理
+        }
+        //存储FILEID_LIST_user表（文件id的链表）
+        if(rop_list_push(redis_conn, fileid_list_table, id) !=0)
+        {
+            LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_LIST error");
+            //缺一个错误处理
+        }
+
+        //存储FILEID_PV_ZSET表
+        if(rop_zset_increment(redis_conn, "FILEID_PV_ZSET", id) !=0)
+        {
+            LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_LIST error");
+            //缺一个错误处理
+        }
+        
+        
+        //存储FILEID_NAME_HASH表（文件名）
+        if(0 != rop_set_hash(redis_conn,"FILEID_NAME_HASH", id, file_name))
+        {
+            LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_NAME_HASH error");
+            //缺一个错误处理
+        }
+
+        //存储FILEID_TIME_HASH表（时间）
+        time(&now);   
+        //timenow = localtime(&now);   
+        //asctime_r(timenow,str_time);
+        strftime(str_time,sizeof(str_time)-1 , "%Y-%m-%d %H:%M:%S", localtime(&now));
+        if(0 != rop_set_hash(redis_conn,"FILEID_TIME_HASH", id, str_time))
+        {
+            LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_TIME_HASH error");
+            //缺一个错误处理
+        }
+        
+        //存储FILEID_URL_HASH表（URL路径）
+        get_url(id,url);
+        if(0 != rop_set_hash(redis_conn,"FILEID_URL_HASH", id, url))
+        {
+            LOG(FDFS_LOG_MODULE,FDFS_LOG_PROC, "set FILEID_TIME_HASH error");
+            //缺一个错误处理
+        }
+        printf("%s",url);//向前台发送存储结果
+
+
+        //断开数据库
+        rop_disconnect(redis_conn);
+
+END:
+
+        printf("\n</pre><p>\n");
+
 
     } /* while */
 
